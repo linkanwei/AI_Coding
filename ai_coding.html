@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>From Vibe Coding to Future Software</title>
+    <meta name="description" content="一小時學生簡報：AI 改變軟體工程的運作方式，但沒有改變確認責任。">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #0b1220; }
+        html, body { height: 100%; }
+        body {
+            font-family: "Noto Sans TC", Inter, sans-serif;
+            background:
+                radial-gradient(900px 420px at 0% -10%, rgba(34, 211, 238, .16), transparent 55%),
+                radial-gradient(800px 380px at 100% 0%, rgba(59, 130, 246, .12), transparent 50%),
+                var(--bg);
+            color: #e2e8f0;
+            overflow: hidden;
+        }
+        .slide { display: none; }
+        .slide.active { display: flex; flex-direction: column; justify-content: center; min-height: 0; height: 100%; }
+        .deck { height: calc(100vh - 4.25rem); }
+        body.notes-on .deck { height: calc(100vh - 4.25rem - 9.5rem); }
+        .glass { background: rgba(15, 23, 42, .78); border: 1px solid rgba(148, 163, 184, .18); }
+        .kicker { letter-spacing: .14em; text-transform: uppercase; }
+        .flow { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: .4rem; }
+        .flow-step { min-height: 5.4rem; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .gate { border-bottom: 4px solid #22d3ee; }
+        #notes { height: 9.5rem; }
+        .theme-choice[aria-pressed="true"] { background: #22d3ee; color: #0f172a; }
+        body[data-theme="white"] { --bg: #fff; background: #fff; color: #0f172a; }
+        body[data-theme="gray"] { --bg: #d8dce3; background: #d8dce3; color: #0f172a; }
+        body[data-theme="white"] .text-white, body[data-theme="gray"] .text-white { color: #0f172a; }
+        body[data-theme="white"] .text-slate-100, body[data-theme="white"] .text-slate-200,
+        body[data-theme="gray"] .text-slate-100, body[data-theme="gray"] .text-slate-200 { color: #1e293b; }
+        body[data-theme="white"] .text-slate-300, body[data-theme="gray"] .text-slate-300 { color: #334155; }
+        body[data-theme="white"] .text-slate-400, body[data-theme="gray"] .text-slate-400 { color: #475569; }
+        body[data-theme="white"] .text-cyan-100, body[data-theme="white"] .text-cyan-200, body[data-theme="white"] .text-cyan-300,
+        body[data-theme="gray"] .text-cyan-100, body[data-theme="gray"] .text-cyan-200, body[data-theme="gray"] .text-cyan-300 { color: #0e7490; }
+        body[data-theme="white"] header, body[data-theme="white"] #notes { background: rgba(255,255,255,.94); border-color: rgba(15,23,42,.12); }
+        body[data-theme="gray"] header, body[data-theme="gray"] #notes { background: rgba(216,220,227,.95); border-color: rgba(15,23,42,.12); }
+        body[data-theme="white"] .glass, body[data-theme="gray"] .glass { background: rgba(255,255,255,.72); border-color: rgba(15,23,42,.12); }
+        body[data-theme="white"] .border-white\/10, body[data-theme="gray"] .border-white\/10 { border-color: rgba(15,23,42,.14); }
+        body[data-theme="white"] .bg-white\/5, body[data-theme="gray"] .bg-white\/5 { background: rgba(15,23,42,.08); }
+        body[data-theme="white"] #indicator, body[data-theme="gray"] #indicator { color:#0e7490; background:rgba(8,145,178,.1); border-color:rgba(8,145,178,.35); }
+        body.presentation-mode header {
+            position: fixed;
+            z-index: 30;
+            top: .75rem;
+            right: .75rem;
+            width: auto;
+            height: auto;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            backdrop-filter: none;
+        }
+        body.presentation-mode #title-block,
+        body.presentation-mode #theme-switch,
+        body.presentation-mode #notes-btn { display: none; }
+        body.presentation-mode header > div:last-child { opacity: .22; transition: opacity .2s ease; }
+        body.presentation-mode header > div:last-child:hover,
+        body.presentation-mode header > div:last-child:focus-within { opacity: 1; }
+        body.presentation-mode #progress-track { position: fixed; z-index: 40; inset: 0 0 auto; }
+        body.presentation-mode .deck { width: 100%; max-width: none; height: 100vh; padding-left: clamp(2rem, 8vw, 9rem); padding-right: clamp(2rem, 8vw, 9rem); }
+        body.presentation-mode #notes { display: none !important; }
+        @media (max-width: 800px) {
+            body { overflow: auto; }
+            .deck { height: auto; min-height: calc(100vh - 4.25rem); }
+            body.notes-on .deck { height: auto; }
+            .slide.active { min-height: calc(100vh - 4.25rem); height: auto; padding: 2rem 0; }
+            .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            body.presentation-mode { overflow: auto; }
+            body.presentation-mode .deck { height: auto; min-height: 100vh; padding-left: 1rem; padding-right: 1rem; }
+            body.presentation-mode .slide.active { min-height: 100vh; }
+        }
+    </style>
+</head>
+<body class="selection:bg-cyan-400 selection:text-slate-950">
+    <header class="flex h-[4.25rem] items-center justify-between gap-3 border-b border-white/10 bg-slate-950/80 px-4 backdrop-blur sm:px-6">
+        <div id="title-block" class="min-w-0">
+            <p class="truncate text-sm font-black text-white sm:text-base">From Vibe Coding to Future Software</p>
+            <p class="truncate text-xs text-cyan-300">AI 改變運作方式；確認責任沒有改變</p>
+        </div>
+        <div class="flex shrink-0 items-center gap-2">
+            <div id="theme-switch" class="flex rounded-lg border border-white/10 p-0.5" role="group" aria-label="底色">
+                <button type="button" data-theme-choice="white" class="theme-choice rounded-md px-2 py-1 text-xs font-bold text-slate-200">白</button>
+                <button type="button" data-theme-choice="gray" class="theme-choice rounded-md px-2 py-1 text-xs font-bold text-slate-200">灰</button>
+                <button type="button" data-theme-choice="black" class="theme-choice rounded-md px-2 py-1 text-xs font-bold text-slate-200">黑</button>
+            </div>
+            <span id="indicator" class="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-bold text-cyan-100"></span>
+            <button id="notes-btn" type="button" class="rounded-lg border border-white/10 px-3 py-2 text-xs font-semibold text-slate-200" aria-pressed="false">備註 N</button>
+            <button id="fullscreen-btn" type="button" class="grid h-9 w-9 place-items-center rounded-lg border border-white/10 text-slate-200" aria-label="全螢幕播放" title="全螢幕播放（F）"><i class="fa-solid fa-expand"></i></button>
+            <button id="prev-btn" class="grid h-9 w-9 place-items-center rounded-lg border border-white/10 text-slate-200" aria-label="上一張"><i class="fa-solid fa-arrow-left"></i></button>
+            <button id="next-btn" class="grid h-9 w-9 place-items-center rounded-lg bg-cyan-400 text-slate-950" aria-label="下一張"><i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </header>
+    <div id="progress-track" class="h-1 bg-white/5"><div id="bar" class="h-full bg-cyan-400 transition-all"></div></div>
+    <main class="deck mx-auto w-full max-w-6xl px-4 sm:px-8" id="deck"></main>
+    <aside id="notes" class="hidden border-t border-cyan-400/20 bg-slate-950/95 px-4 py-3 sm:px-8" aria-live="polite">
+        <p class="text-xs font-bold tracking-widest text-cyan-300">講者備註</p>
+        <p id="note-text" class="mt-1 text-sm leading-relaxed text-slate-200 sm:text-base"></p>
+    </aside>
+
+    <script>
+        // ── 投影片用的 SVG 圖：顏色一律 currentColor，跟著白／灰／黑底色切換 ──
+        const D = (() => {
+            const svg = (w, h, inner, label, maxh = "46vh") =>
+                `<svg viewBox="0 0 ${w} ${h}" class="mx-auto mt-5 block h-auto w-full" style="max-height:${maxh}" role="img" aria-label="${label}">${inner}</svg>`;
+            const box = (x, y, w, h, t, s = "", tone = "text-white", strong = false) =>
+                `<g class="${tone}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12" fill="currentColor" fill-opacity="${strong ? .16 : .05}" stroke="currentColor" stroke-opacity="${strong ? .95 : .45}" stroke-width="${strong ? 2.4 : 1.4}"/>` +
+                `<text x="${x + w / 2}" y="${y + h / 2 + (s ? -3 : 5)}" text-anchor="middle" font-size="15" font-weight="800" fill="currentColor">${t}</text>` +
+                (s ? `<text x="${x + w / 2}" y="${y + h / 2 + 16}" text-anchor="middle" font-size="11.5" fill="currentColor" fill-opacity=".75">${s}</text>` : "") + `</g>`;
+            const head = (x, y, a, L = 10) => {
+                const p = d => `${(x - L * Math.cos(a + d)).toFixed(1)},${(y - L * Math.sin(a + d)).toFixed(1)}`;
+                return `<polygon points="${x},${y} ${p(-.45)} ${p(.45)}" fill="currentColor"/>`;
+            };
+            const arrow = (x1, y1, x2, y2, label = "", tone = "text-cyan-300", dash = false, ly = -8) =>
+                `<g class="${tone}"><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="currentColor" stroke-width="2" ${dash ? 'stroke-dasharray="6 5"' : ""}/>${head(x2, y2, Math.atan2(y2 - y1, x2 - x1))}` +
+                (label ? (Math.abs(x2 - x1) < 2
+                    // 垂直箭頭：標籤放右側，不壓在線上
+                    ? `<text x="${x1 + 8}" y="${(y1 + y2) / 2 + 4}" text-anchor="start" font-size="12" font-weight="700" fill="currentColor">${label}</text>`
+                    : `<text x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2 + ly}" text-anchor="middle" font-size="12" font-weight="700" fill="currentColor">${label}</text>`) : "") + `</g>`;
+            const text = (x, y, t, size = 12, tone = "text-slate-300", anchor = "middle", weight = 500) =>
+                `<text class="${tone}" x="${x}" y="${y}" text-anchor="${anchor}" font-size="${size}" font-weight="${weight}" fill="currentColor">${t}</text>`;
+            // 由下方繞回去的回饋箭頭（迴圈）
+            const back = (x1, x2, y, depth, label, tone = "text-cyan-300") =>
+                `<g class="${tone}"><path d="M ${x1} ${y} C ${x1} ${y + depth}, ${x2} ${y + depth}, ${x2} ${y + 4}" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="6 5"/>${head(x2, y, -Math.PI / 2)}` +
+                `<text x="${(x1 + x2) / 2}" y="${y + depth * .75 + 22}" text-anchor="middle" font-size="12.5" font-weight="700" fill="currentColor">${label}</text></g>`;
+            // 一列方框＋箭頭；loop 有值時畫回饋箭頭
+            const chain = (items, { w = 900, bw = 150, bh = 60, y = 30, loop = "", strong = [], label = "流程" } = {}) => {
+                const gap = (w - 40 - bw * items.length) / (items.length - 1);
+                let g = "";
+                items.forEach((it, i) => {
+                    const x = 20 + i * (bw + gap);
+                    g += box(x, y, bw, bh, it[0], it[1] || "", strong.includes(i) ? "text-cyan-300" : "text-white", strong.includes(i));
+                    if (i < items.length - 1) g += arrow(x + bw + 4, y + bh / 2, x + bw + gap - 4, y + bh / 2);
+                });
+                if (loop) g += back(20 + (items.length - 1) * (bw + gap) + bw / 2, 20 + bw / 2, y + bh, 70, loop);
+                return svg(w, y + bh + (loop ? 85 : 20), g, label);
+            };
+            // 中心＋周圍的輪輻圖（Harness）
+            const hub = (center, items, label) => {
+                const cx = 450, cy = 190, pos = [[375, 18], [95, 70], [655, 70], [40, 168], [710, 168], [125, 282], [625, 282]];
+                let g = `<g class="text-slate-400"><rect x="8" y="6" width="884" height="356" rx="22" fill="none" stroke="currentColor" stroke-opacity=".5" stroke-dasharray="7 6"/></g>` +
+                    text(26, 30, "HARNESS", 12, "text-cyan-300", "start", 800);
+                items.forEach((it, i) => {
+                    const [x, y] = pos[i];
+                    g += `<g class="text-slate-400"><line x1="${cx}" y1="${cy}" x2="${x + 75}" y2="${y + 28}" stroke="currentColor" stroke-opacity=".55" stroke-width="1.4"/></g>`;
+                });
+                items.forEach((it, i) => { const [x, y] = pos[i]; g += box(x, y, 150, 56, it[0], it[1]); });
+                g += `<g class="text-cyan-300"><circle cx="${cx}" cy="${cy}" r="62" fill="currentColor" fill-opacity=".16" stroke="currentColor" stroke-width="2.4"/>` +
+                    `<text x="${cx}" y="${cy - 2}" text-anchor="middle" font-size="17" font-weight="900" fill="currentColor">${center[0]}</text>` +
+                    `<text x="${cx}" y="${cy + 18}" text-anchor="middle" font-size="11.5" fill="currentColor">${center[1]}</text></g>`;
+                return svg(900, 368, g, label, "50vh");
+            };
+            return { svg, box, arrow, text, back, chain, hub, head };
+        })();
+
+        const slidesData = [
+            {
+                kicker: "一小時",
+                title: "From Vibe Coding<br>to Future Software",
+                body: `<p class="mt-6 max-w-4xl text-xl leading-relaxed text-slate-300 sm:text-2xl">需求 → 規格 → SA → SD → 開發 → Review → Test → Deploy → Test → PDCA。<br>AI 讓每一步變快，但沒有替任何人簽收。</p>`,
+                note: "開場就先把完整流程念出來。今天不是反對 AI，而是把 AI 放回軟體工程。全場只有一句主張：運作方式改變了，確認責任沒有改變。"
+            },
+            {
+                kicker: "今天怎麼走",
+                title: "從感覺，走到可交付的軟體",
+                body: `<div class="mt-6 grid gap-3 md:grid-cols-3">
+                    <div class="glass rounded-2xl p-4"><b class="text-cyan-300">01</b><p class="mt-2 text-lg font-black text-white">Vibe Coding</p><p class="mt-1 text-sm text-slate-300">為什麼突然做得到</p></div>
+                    <div class="glass rounded-2xl p-4"><b class="text-cyan-300">02</b><p class="mt-2 text-lg font-black text-white">Software Engineering</p><p class="mt-1 text-sm text-slate-300">流程與確認為何仍在</p></div>
+                    <div class="glass rounded-2xl p-4"><b class="text-cyan-300">03</b><p class="mt-2 text-lg font-black text-white">AI Coding Harness</p><p class="mt-1 text-sm text-slate-300">Tools、Rules、Skills、Gates</p></div>
+                    <div class="glass rounded-2xl p-4"><b class="text-cyan-300">04</b><p class="mt-2 text-lg font-black text-white">FDE 經驗</p><p class="mt-1 text-sm text-slate-300">帶 Junior 從訪談到安裝</p></div>
+                    <div class="glass rounded-2xl p-4"><b class="text-cyan-300">05</b><p class="mt-2 text-lg font-black text-white">真實導入</p><p class="mt-1 text-sm text-slate-300">企業 AI Data Mart，從規格到客戶上線</p></div>
+                    <div class="glass rounded-2xl p-4 ring-1 ring-cyan-400/50"><b class="text-cyan-300">06</b><p class="mt-2 text-lg font-black text-white">這份簡報</p><p class="mt-1 text-sm text-slate-300">Cursor 換模型，再用 Claude Code 調整</p></div>
+                </div>`,
+                note: "先交代路線。前五段是課：現象、流程、Harness、帶 Junior、以及一個正在客戶端運作的專案。最後一段用這份簡報自己當案例：同一份 ai_coding.html，Cursor 裡從 Grok 4.7 換到 GPT 5.6，再交給 Claude Code 調整。用來說明為什麼不能只留一個工具。"
+            },
+            {
+                kicker: "起點 · 2025 年 2 月 3 日",
+                title: "Vibe Coding：原文與中譯",
+                body: `<div class="mt-4 grid min-h-0 gap-5 md:grid-cols-[.9fr_1.1fr]">
+                    <a href="https://x.com/karpathy/status/1886192184808149383" target="_blank" rel="noopener noreferrer"><img src="images/karpathy-vibe-coding.png" alt="Karpathy 提出 vibe coding 的貼文截圖" class="mx-auto max-h-[58vh] w-auto rounded-2xl bg-white shadow-xl"></a>
+                    <div class="glass rounded-2xl p-5 text-sm leading-relaxed text-slate-200 sm:text-base">
+                        <p><b class="text-cyan-300">有一種新的寫程式方式，我叫它 vibe coding。</b>完全跟著感覺走，擁抱指數成長，甚至忘掉程式碼存在；LLM 已經強得過頭。</p>
+                        <p class="mt-3">我幾乎不碰鍵盤；一律 Accept All，不讀 diff。錯誤訊息一句話不加、整段貼回去，通常就好了。</p>
+                        <p class="mt-3">程式大到超出我理解。修不好就繞過去，或隨便改到它消失。拿來做週末會丟掉的專案還不錯：我只是看、說、跑、貼上，然後它大致能動。</p>
+                    </div>
+                </div>`,
+                note: "截圖與中譯同頁。先看左邊原文，再讀右邊三段。重點不是嘲笑 Accept All，而是指出 Karpathy 自己限定了場景：throwaway weekend project。『大致能動』不是正式軟體的完成定義。"
+            },
+            {
+                kicker: "為什麼會出現",
+                title: "工具先跨過線，習慣跟著改",
+                body: `<div class="mt-7 grid gap-4 md:grid-cols-3">
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">能力</b><p class="mt-2 text-lg text-white">模型能改整個功能，不只補下一行</p></div>
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">成本</b><p class="mt-2 text-lg text-white">說一句話，比自己找檔案便宜</p></div>
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">標準</b><p class="mt-2 text-lg text-white">原型只要「大致能動」</p></div>
+                </div><p class="mt-5 text-lg text-slate-300">問題不是原型快；是把原型的完成標準帶進正式軟體。</p>`,
+                note: "變化不是人突然變懶。模型能力、互動成本與原型場景一起跨過臨界點。真正的錯誤是沒有在場景改變時切換品質標準。"
+            },
+            {
+                kicker: "一年後 · 2026",
+                title: "Agentic Engineering：原文與中譯",
+                body: `<div class="mt-4 grid min-h-0 gap-5 md:grid-cols-[.9fr_1.1fr]">
+                    <a href="https://x.com/karpathy/status/2019137879310836075" target="_blank" rel="noopener noreferrer"><img src="images/karpathy-agentic-engineering.png" alt="Karpathy 提出 agentic engineering 的貼文截圖" class="mx-auto max-h-[58vh] w-auto rounded-2xl bg-white shadow-xl"></a>
+                    <div class="glass rounded-2xl p-5 text-sm leading-relaxed text-slate-200 sm:text-base">
+                        <p>一年前，模型能力還低，Vibe Coding 多半用於會丟掉的趣味專案、Demo 與探索；很好玩，也幾乎能動。</p>
+                        <p class="mt-3">一年後，透過 LLM agents 寫程式正成為專業工作預設，但必須有更多監督與審查：<b class="text-cyan-300">拿到代理的槓桿，同時不犧牲軟體品質。</b></p>
+                        <p class="mt-3"><b>Agentic</b>：你多數時間在指揮代理並監督。<br><b>Engineering</b>：這是一門可學習、可進步、有另一種深度的專業。</p>
+                    </div>
+                </div>`,
+                note: "第二則也把截圖與中譯放同頁。關鍵不是名稱，而是兩個限制：oversight and scrutiny，以及 without compromise on quality。這正是後面軟體工程與 Harness 的橋。"
+            },
+            {
+                kicker: "師出有名 · Stanford CS146S",
+                title: "不是 Vibe Coding，<br>是 Human–Agent Engineering",
+                body: `<div class="mt-7 grid gap-4 md:grid-cols-3">
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">Intent</b><p class="mt-2 text-white">重新定義意圖要怎麼寫清楚</p></div>
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">Specification</b><p class="mt-2 text-white">把產品需求變成可執行規格</p></div>
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">Loop</b><p class="mt-2 text-white">人與代理一起 plan、build、evaluate、improve</p></div>
+                </div><p class="mt-5 text-sm text-slate-400">來源：<a class="text-cyan-300 underline" href="https://themodernsoftware.dev/" target="_blank">Stanford CS146S: The Modern Software Developer</a></p>`,
+                note: "這張建立權威來源。念官網三個重點：定義意圖、需求轉成可執行規格、人在迴圈裡規劃建造評估改進。Stanford 沒有說把流程丟掉，而是重新設計人機分工。"
+            },
+            {
+                kicker: "Stanford 的五個關鍵字",
+                title: "工具會換，方法才是課程主體",
+                body: `<div class="mt-7 grid grid-cols-2 gap-3 md:grid-cols-5">
+                    ${["MCP<br><small>接工具</small>","Agent Skills<br><small>編流程</small>","Spec-driven<br><small>規格驅動</small>","Loop Engineering<br><small>反覆確認</small>","Software Factory<br><small>規模化</small>"].map(x=>`<div class="glass rounded-2xl p-4 text-center text-lg font-bold text-white">${x}</div>`).join("")}
+                </div><p class="mt-5 text-slate-300">2026 課綱還把 Code Review、安全、背景代理、團隊與軟體工廠各自拉成一週。</p>`,
+                note: "這五個詞不是產品名稱。MCP 和 Skills 給能力；Spec 和 Loop 管品質；Software Factory 才能規模化。特別指出課綱為 code review 與 security 各留一週，表示生成程式碼絕不是終點。"
+            },
+            {
+                kicker: "完整軟體生命週期",
+                title: "流程沒有消失，只是每一步多了一位代理",
+                body: `<div class="flow mt-7 text-sm font-bold text-white">
+                    ${["需求","規格","SA","SD","開發","Review","Test","Deploy","Production Test"].map((x,i)=>`<div class="flow-step glass rounded-xl p-2 ${[1,3,5,6,8].includes(i)?"gate":""}">${x}</div>`).join("")}
+                </div><div class="mt-6 flex items-center gap-3 text-lg text-slate-300"><span class="h-1 w-14 bg-cyan-400"></span>有底線的是明確確認關卡</div><p class="mt-4 text-xl font-bold text-cyan-200">外面再用 PDCA 持續改善；Scrum 管理每一輪怎麼跑。</p>`,
+                note: "第一次展示全流程。SA 是 System Analysis，SD 是 System Design。底線不是說其他步驟不用確認，而是這些地方要有可見的 gate。PDCA 是外圈，Scrum 是節奏，不是另一條流程。"
+            },
+            {
+                kicker: "本課唯一不變量",
+                title: "AI 改變執行者；沒有改變簽收者",
+                body: `${D.svg(900, 270,
+                        D.text(20, 72, "以前", 16, "text-slate-400", "start", 800) +
+                        D.box(110, 40, 170, 62, "需求", "人定義") + D.arrow(284, 71, 336, 71) +
+                        D.box(340, 40, 170, 62, "產出", "人寫") + D.arrow(514, 71, 566, 71) +
+                        D.box(570, 40, 170, 62, "確認", "人簽收") + D.arrow(744, 71, 796, 71) +
+                        D.text(840, 77, "上線", 15, "text-white", "middle", 800) +
+                        D.text(20, 192, "現在", 16, "text-cyan-300", "start", 800) +
+                        D.box(110, 160, 170, 62, "需求", "人（定方向）＋ 代理", "text-cyan-300", true) + D.arrow(284, 191, 336, 191) +
+                        D.box(340, 160, 170, 62, "產出", "人 ＋ 代理（快很多）", "text-cyan-300", true) + D.arrow(514, 191, 566, 191) +
+                        D.box(570, 160, 170, 62, "確認", "仍是人簽收", "text-white", true) + D.arrow(744, 191, 796, 191) +
+                        D.text(840, 197, "上線", 15, "text-white", "middle", 800) +
+                        D.text(310, 254, "代理加進來的兩格", 12.5, "text-cyan-300", "middle", 700) +
+                        D.text(655, 254, "這一格沒有變", 12.5, "text-slate-300", "middle", 700),
+                        "以前與現在的流程對照：需求由人定方向、代理協助，產出由人和代理一起做，確認仍由人負責")}
+                <p class="mt-4 text-xl text-slate-300">生成可以委派；責任不能委派。</p>`,
+                note: "這句要講慢。代理可以研究、起草、設計、寫 code、寫 test、部署；但需求是否正確、風險是否可接受、是否能上線，仍需有名字的人負責。"
+            },
+            {
+                kicker: "1 · Requirement",
+                title: "需求不是「做一個 App」",
+                body: `<div class="mt-7 grid gap-3 md:grid-cols-4">
+                    ${[["Who","誰有問題"],["Why","為什麼現在要解"],["What","要改變哪個行為"],["Outcome","怎樣才算有價值"]].map(x=>`<div class="glass rounded-2xl p-5"><b class="text-cyan-300">${x[0]}</b><p class="mt-2 text-lg text-white">${x[1]}</p></div>`).join("")}
+                </div><p class="mt-5 text-slate-300">需求的確認：Product Owner／利害關係人同意「問題與結果」，不是只同意畫面。</p>`,
+                note: "學生常把功能清單當需求。需求層先確認問題與價值。AI 可以訪談模擬、整理逐字稿、找矛盾，但不能代替真正使用者點頭。"
+            },
+            {
+                kicker: "Requirement + AI",
+                title: "AI 先當分析助理，不要先當程式員",
+                body: `<div class="mt-7 grid gap-4 md:grid-cols-2">
+                    <div class="glass rounded-3xl p-6"><b class="text-cyan-300">交給 AI</b><ul class="mt-3 space-y-2 text-lg text-slate-200"><li>整理訪談與痛點</li><li>列假設與待確認問題</li><li>找需求衝突與遺漏</li></ul></div>
+                    <div class="glass rounded-3xl p-6"><b class="text-cyan-300">人確認</b><ul class="mt-3 space-y-2 text-lg text-slate-200"><li>問題是真的</li><li>優先順序正確</li><li>成功指標有意義</li></ul></div>
+                </div>`,
+                note: "把代理從 coder 往前移到 discovery，但不要讓它幻想使用者。它只能從你提供的證據推論。第一個 confirmation gate 是需求基線。"
+            },
+            {
+                kicker: "2 · Specification",
+                title: "把需求翻成可執行規格",
+                body: `<div class="mt-7 grid gap-3 md:grid-cols-4">
+                    ${["輸入與輸出","正常流程","錯誤與邊界","Non-functional<br>效能、安全、可用性"].map(x=>`<div class="glass rounded-2xl p-5 text-lg font-bold text-white">${x}</div>`).join("")}
+                </div><blockquote class="mt-6 border-l-4 border-cyan-400 pl-5 text-xl text-slate-200">Stanford CS146S：translate product requirements into executable specifications.</blockquote>`,
+                note: "這句直接來自 Stanford 官網。可執行不一定指某個規格工具，而是規格能被測試、能被代理照著做、能被人驗收。"
+            },
+            {
+                kicker: "Specification",
+                title: "規格要能被打勾",
+                body: `<div class="mt-6 glass max-w-4xl rounded-3xl p-6">
+                    <p class="font-bold text-cyan-300">Given / When / Then</p>
+                    <p class="mt-4 text-xl text-white">Given 使用者輸入空白待辦</p>
+                    <p class="text-xl text-white">When 按下新增</p>
+                    <p class="text-xl text-white">Then 顯示錯誤，且資料筆數不變</p>
+                </div><p class="mt-5 text-lg text-slate-300">「好用」「漂亮」「應該沒問題」不能自動驗證，也不能阻止代理自說自話。</p>`,
+                note: "用最小例子解釋 executable spec。規格不是篇幅長，而是可觀察。確認者要在開發前同意例子，否則測試只是在驗證 AI 自己猜的需求。"
+            },
+            {
+                kicker: "3 · SA · System Analysis",
+                title: "SA 決定系統要負哪些責任",
+                body: `<div class="mt-7 grid gap-4 md:grid-cols-3">
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">Boundary</b><p class="mt-2 text-white">哪些在系統內，哪些交給外部服務</p></div>
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">Domain</b><p class="mt-2 text-white">資料、規則、角色、狀態如何互動</p></div>
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">Risk</b><p class="mt-2 text-white">失敗、安全、法規與相依性</p></div>
+                </div><p class="mt-5 text-xl font-bold text-slate-200">確認資訊流（交互方式）與界限。</p>`,
+                note: "SA 不是請 AI 選框架。它先建立問題世界的模型。AI 可以讀既有系統、列依賴、追資料流；人要確認邊界與風險，因為選錯邊界會讓後面的 code 全部做對錯的事。"
+            },
+            {
+                kicker: "SA + AI",
+                title: "讓代理研究現況，但要求證據",
+                body: `<div class="mt-7 grid gap-3 md:grid-cols-2">
+                    <div class="glass rounded-2xl p-5 text-lg text-white">列出相關模組、API、資料表與呼叫路徑</div>
+                    <div class="glass rounded-2xl p-5 text-lg text-white">每個結論附檔案路徑、函式或文件來源</div>
+                    <div class="glass rounded-2xl p-5 text-lg text-white">不確定處標成假設，不准補故事</div>
+                    <div class="glass rounded-2xl p-5 text-lg text-white">分析結果先 Review，才進設計</div>
+                </div><p class="mt-5 text-sm text-slate-400">對應 Stanford：context engineering、agent-ready repositories。</p>`,
+                note: "這是 context engineering 的具體樣子。讓代理做 research，但輸出要能追溯。沒有證據的理解只是更流暢的猜測。"
+            },
+            {
+                kicker: "4 · SD · System Design",
+                title: "SD 決定責任怎麼被實作",
+                body: `<div class="mt-7 grid gap-4 md:grid-cols-4">
+                    ${[["Component","模組與責任"],["Data","Schema 與生命週期"],["Interface","API 與契約"],["Quality","效能、安全、可觀測性"]].map(x=>`<div class="glass rounded-2xl p-5"><b class="text-cyan-300">${x[0]}</b><p class="mt-2 text-white">${x[1]}</p></div>`).join("")}
+                </div><p class="mt-5 text-xl text-slate-200">確認產物：設計文件、ADR、API contract、migration 與 rollback 計畫。</p>`,
+                note: "SA 問系統負什麼責任，SD 問怎麼分配責任。ADR 是 Architecture Decision Record。AI 能提出多個方案，但 trade-off 要由團隊確認。"
+            },
+            {
+                kicker: "SD + AI",
+                title: "不要問「最佳架構」；要比較方案",
+                body: `<div class="mt-7 overflow-hidden rounded-2xl border border-white/10">
+                    <div class="grid grid-cols-4 bg-white/5 text-sm font-bold text-cyan-300"><div class="p-3">方案</div><div class="p-3">優點</div><div class="p-3">代價</div><div class="p-3">何時失敗</div></div>
+                    <div class="grid grid-cols-4 text-slate-200"><div class="p-3">A：同步</div><div class="p-3">簡單</div><div class="p-3">等待時間</div><div class="p-3">高流量</div></div>
+                    <div class="grid grid-cols-4 border-t border-white/10 text-slate-200"><div class="p-3">B：Queue</div><div class="p-3">可削峰</div><div class="p-3">複雜度</div><div class="p-3">一致性要求高</div></div>
+                </div><p class="mt-5 text-lg text-slate-300">人確認選擇與代價；代理把決定寫成 ADR。</p>`,
+                note: "設計的核心不是畫圖，是做 trade-off。要求 AI 提至少兩案、代價與失敗模式，避免它用一個流暢答案掩蓋沒有選擇。"
+            },
+            {
+                kicker: "5 · Development",
+                title: "規格確認了，才讓代理改檔案",
+                body: `<div class="mt-8 grid gap-4 md:grid-cols-3">
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">Small Batch</b><p class="mt-2 text-white">一次一個可驗證變更</p></div>
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">Context</b><p class="mt-2 text-white">給規格、設計、規則與相關檔案</p></div>
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">Stop</b><p class="mt-2 text-white">超出範圍或證據不足就停下來問</p></div>
+                </div><p class="mt-5 text-xl text-slate-200">速度來自少走錯路，不是一次生成更多行。</p>`,
+                note: "這張才開始 coding。AI 可以大量產出，但工作單位應縮小。小批次讓 review、test、rollback 都更便宜。"
+            },
+            {
+                kicker: "Stanford Workshop · REPIT",
+                title: "Research → Plan → Implement → Test",
+                body: `${D.chain([["Research", "讀程式庫與文件"], ["Plan", "設計方案＋人 Review"], ["Implement", "AI 協助實作"], ["Test", "驗證、審查"]],
+                        { bw: 175, bh: 70, loop: "沒過就回到 Research／Plan，再轉一圈", strong: [1, 3], label: "Research、Plan、Implement、Test 四步，測試沒過回到前面再迭代" })}
+                <p class="mt-3 text-center text-lg text-slate-300">有底色的兩格是人要確認的地方：方案對不對、結果對不對。</p><p class="mt-2 text-center text-sm text-slate-400">來源：The Modern Software AI Coding Agents Workshop</p>`,
+                note: "這是 Stanford 團隊工作坊的具體 loop，與傳統流程完全接得起來。不是 prompt 然後 pray，而是 research、plan、implement、test。"
+            },
+            {
+                kicker: "第三章 · AI Coding Harness",
+                title: "模型只是引擎；Harness 才是整台車",
+                body: `${D.hub(["Model", "推理與生成引擎"], [
+                        ["Context", "規格、程式庫、文件"],
+                        ["Tools／MCP", "讀檔、Git、DB、瀏覽器"],
+                        ["Rules", "邊界、權限、完成定義"],
+                        ["Skills", "可重用的專業流程"],
+                        ["Memory", "專案與團隊知識"],
+                        ["Loop", "Plan→Build→Evaluate"],
+                        ["Gates", "Review、Test、Approval"]
+                    ], "模型在中心，外圍是 Context、Tools、Rules、Skills、Memory、Loop、Gates 七個部分，合起來是 Harness")}
+                <p class="mt-3 text-lg text-slate-300">同一個模型，放進不同 Harness，可靠度可以完全不同。第五章會看到這七塊在真實專案裡各是什麼。</p>`,
+                note: "先定義 Harness：不是單一產品，而是包住模型的開發系統。Stanford 課綱的 MCP、agent skills、spec-driven、loop engineering 與 software factory，合起來就是這個方向。"
+            },
+            {
+                kicker: "MCP 與 Skills",
+                title: "MCP 給它手；Skill 教它怎麼做",
+                body: `${D.svg(900, 300,
+                        D.text(115, 22, "MCP／Tool：我「能」做什麼", 14, "text-cyan-300", "middle", 800) +
+                        D.text(780, 22, "Skill：這件事「應該怎麼」做", 14, "text-cyan-300", "middle", 800) +
+                        [["資料庫", "查詢、比對"], ["Git", "diff、commit"], ["瀏覽器", "看畫面、測試"], ["檔案", "讀寫程式與文件"]]
+                            .map((t, i) => D.box(30, 40 + i * 62, 170, 50, t[0], t[1]) + D.arrow(372, 150, 204, 65 + i * 62, "", "text-slate-400")).join("") +
+                        D.box(375, 112, 150, 76, "Agent", "代理", "text-cyan-300", true) +
+                        `<g class="text-white"><rect x="680" y="40" width="200" height="236" rx="12" fill="currentColor" fill-opacity=".05" stroke="currentColor" stroke-opacity=".45" stroke-width="1.4"/>` +
+                        `<text x="780" y="66" text-anchor="middle" font-size="15" font-weight="800" fill="currentColor">SKILL.md</text></g>` +
+                        [["1", "何時使用、何時不用"], ["2", "步驟與判斷標準"], ["3", "停止條件"], ["4", "範例、模板、腳本"]]
+                            .map((t, i) => D.text(700, 102 + i * 42, `<tspan font-weight="800" class="text-cyan-300" fill="currentColor">${t[0]}</tspan>　${t[1]}`, 13, "text-slate-200", "start")).join("") +
+                        D.arrow(676, 150, 529, 150, "照 SOP 做"),
+                        "代理在中間：左邊透過 MCP 接資料庫、Git、瀏覽器、檔案等工具；右邊的 Skill 告訴它步驟、判斷標準與停止條件")}
+                <p class="mt-3 text-lg text-slate-300">只有工具沒有 Skill：它自己猜流程。只有 Skill 沒有工具：它知道方法卻做不了。</p>`,
+                note: "用最簡單區別：MCP 是手，Skill 是 SOP。只有工具沒有 Skill，代理會自己猜流程；只有 Skill 沒有工具，它知道方法卻做不了。"
+            },
+            {
+                kicker: "Skill 是什麼",
+                title: "把一次做對，變成下次可重用",
+                body: `<div class="mt-7 grid gap-3 md:grid-cols-4">
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">Trigger</b><p class="mt-2 text-white">何時使用、何時不要用</p></div>
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">Instructions</b><p class="mt-2 text-white">步驟、判斷與停止條件</p></div>
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">Resources</b><p class="mt-2 text-white">模板、範例、規則與參考</p></div>
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">Scripts</b><p class="mt-2 text-white">把確定性工作交給程式</p></div>
+                </div><p class="mt-6 max-w-4xl text-xl text-slate-300">Skill 不是「神奇提示詞」。它是版本化、可檢查、可測試的工作方法；需要時才逐步載入，避免把整份手冊塞進 context。</p>`,
+                note: "以 SKILL.md 為例，但不要綁死工具。好的 Skill 有清楚 trigger、輸入輸出、步驟、停止條件，重複且確定的部分放 script。它是團隊知識資產，應該進 Git。"
+            },
+            {
+                kicker: "使用 Skill 要注意",
+                title: "Skill 會放大能力，也會放大錯誤",
+                body: `<div class="mt-6 grid gap-3 md:grid-cols-2">
+                    ${[
+                        ["來源可信","第三方 Skill 等同會執行的程式碼；先讀再裝"],
+                        ["最小權限","只給需要的工具、目錄、環境與憑證"],
+                        ["防提示注入","外部網頁與文件是資料，不是可信指令"],
+                        ["避免過時","框架、API、流程改了，Skill 也要版本化更新"],
+                        ["可測試","用固定案例驗證輸入、輸出與停止條件"],
+                        ["人類 Gate","刪除、付款、發布、合併等高風險動作要批准"]
+                    ].map(x=>`<div class="glass rounded-xl p-4"><b class="text-cyan-300">${x[0]}</b><span class="ml-2 text-sm text-white">${x[1]}</span></div>`).join("")}
+                </div>`,
+                note: "Skills 是供應鏈的一部分。最常見風險：下載不可信指令、權限過大、把外部內容當指令、流程過期。Skill 不是用來繞過確認，而是把確認標準做成可重複的流程。"
+            },
+            {
+                kicker: "6 · Code Review",
+                title: "一千行不是進度；被理解才是",
+                body: `<div class="mt-7 grid gap-3 md:grid-cols-4">
+                    ${["Scope<br><small>只做規格內</small>","Logic<br><small>流程與邊界正確</small>","Design<br><small>沒有破壞責任分界</small>","Risk<br><small>安全、效能、相依</small>"].map(x=>`<div class="glass rounded-2xl p-5 text-center text-lg font-bold text-white">${x}</div>`).join("")}
+                </div><p class="mt-6 text-xl text-slate-300">AI 可以先 Review；另一個 AI 也可以當 critic。最後仍要有負責的人理解 diff。</p>`,
+                note: "Stanford 2026 把 Agentic Code Review 獨立成一週。這不是附屬技能。Review tax 會隨生成量上升，所以要用小 PR、規則與第二代理先篩，但人不能只看摘要。"
+            },
+            {
+                kicker: "Review Gate",
+                title: "進 Git 前，問五個問題",
+                body: `<ol class="mt-6 grid gap-3 md:grid-cols-2">
+                    ${["需求與規格都打勾了嗎？","SA／SD 的邊界有被破壞嗎？","每一塊 diff 都說得出原因嗎？","有沒有計畫外的重構或套件？","失敗時能測、能查、能回復嗎？"].map((x,i)=>`<li class="glass rounded-2xl p-4 text-lg text-white"><b class="mr-2 text-cyan-300">${i+1}.</b>${x}</li>`).join("")}
+                </ol>`,
+                note: "這五題可以直接成為 PR checklist。第五題把 test、observability、rollback 都帶進來。答不出來就回到代理，不要用 commit 把未知封存。"
+            },
+            {
+                kicker: "7 · Test",
+                title: "AI 會寫 Test，不代表 Test 有測到需求",
+                body: `<div class="mt-7 grid gap-4 md:grid-cols-3">
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">Unit</b><p class="mt-2 text-white">規則與邊界</p></div>
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">Integration</b><p class="mt-2 text-white">資料庫、API、外部服務</p></div>
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">E2E</b><p class="mt-2 text-white">使用者關鍵旅程</p></div>
+                </div><p class="mt-5 text-lg text-slate-300">規格產生驗收測試；設計產生整合測試；風險產生失敗測試。測試與實作不能只來自同一個猜測。</p>`,
+                note: "如果 AI 同時猜需求、寫 code、寫 test，它可能只是證明自己的猜測一致。測試要回溯到已確認的規格與風險。"
+            },
+            {
+                kicker: "Security Gate",
+                title: "能跑，不等於能上線",
+                body: `<div class="mt-7 grid gap-3 md:grid-cols-2">
+                    ${["套件與版本真實、受維護","Secrets 不進 code、Git、對話","輸入驗證與權限檢查","SAST／SCA 與威脅模型通過"].map(x=>`<div class="glass rounded-2xl p-5 text-lg text-white">${x}</div>`).join("")}
+                </div><p class="mt-5 text-sm text-slate-400">Stanford 2026：Security 獨立一週，涵蓋 SAST／SCA、prompt injection 與 agent attack surface。</p>`,
+                note: "資安也是 confirmation gate。Agent 多了工具權限與提示注入攻擊面。這裡只講防禦：最小權限、掃描、secret 管理、依賴核對。"
+            },
+            {
+                kicker: "8 · Git",
+                title: "Git 不是備份；是確認紀錄",
+                body: `${D.svg(900, 230,
+                        `<g class="text-slate-300"><line x1="30" y1="60" x2="870" y2="60" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></g>` +
+                        `<g class="text-cyan-300"><path d="M 150 60 C 190 60, 190 150, 240 150 L 560 150 C 610 150, 610 60, 650 60" fill="none" stroke="currentColor" stroke-width="4"/></g>` +
+                        [80, 150, 650, 800].map(x => `<g class="text-slate-300"><circle cx="${x}" cy="60" r="11" fill="currentColor"/></g>`).join("") +
+                        [[300, "規格測試"], [420, "實作"], [540, "依 Review 修正"]].map(([x, t]) => `<g class="text-cyan-300"><circle cx="${x}" cy="150" r="11" fill="currentColor"/></g>` + D.text(x, 186, t, 12.5, "text-white", "middle", 700)).join("") +
+                        D.text(36, 40, "main", 13, "text-slate-300", "start", 800) +
+                        D.text(200, 122, "Branch：一個需求", 12.5, "text-cyan-300", "start", 700) +
+                        D.box(560, 0, 180, 40, "PR：團隊再確認一次", "", "text-cyan-300", true) +
+                        D.text(650, 96, "Merge", 12.5, "text-cyan-300", "middle", 800) +
+                        D.text(420, 214, "每個 Commit ＝ 一個已驗證的意圖", 13, "text-slate-300", "middle", 700),
+                        "Git 分支圖：從 main 開出一個需求分支，三個 commit 各記錄一個驗證過的意圖，經 PR 確認後合併回 main")}
+                <div class="mt-3 glass max-w-3xl rounded-2xl p-4 font-mono text-cyan-100">完成待辦狀態保存<br><span class="text-slate-300">驗收：重整後狀態仍在；空白輸入被拒絕</span></div>`,
+                note: "不要寫 update、fix、AI changes。Commit message 應對應意圖與驗收。Git 的價值在可追溯與可回復，不是把大量生成結果推上去。"
+            },
+            {
+                kicker: "Pull Request",
+                title: "把規格、設計、證據放在同一個地方",
+                body: `<div class="mt-7 grid gap-3 md:grid-cols-4">
+                    ${["Why<br><small>需求／價值</small>","What<br><small>範圍／設計</small>","Evidence<br><small>測試／畫面／數據</small>","Risk<br><small>部署／回復</small>"].map(x=>`<div class="glass rounded-2xl p-5 text-center text-lg font-bold text-white">${x}</div>`).join("")}
+                </div><p class="mt-6 text-xl text-slate-300">代理可代寫 PR 描述；Reviewer 依證據簽收，不依文筆簽收。</p>`,
+                note: "PR 是跨角色 confirmation：PO 看 Why，架構師看 What，開發與 QA 看 Evidence，維運看 Risk。AI 摘要很有用，但不能取代原始 diff 和測試結果。"
+            },
+            {
+                kicker: "9 · Deploy",
+                title: "部署不是終點，是維運的起點",
+                body: `${D.svg(900, 250,
+                        D.box(20, 30, 150, 64, "Build", "可重現") + D.arrow(174, 62, 206, 62) +
+                        D.box(210, 30, 150, 64, "Config", "環境與 Secrets") + D.arrow(364, 62, 396, 62) +
+                        D.box(400, 30, 150, 64, "Approval", "誰批准、哪一版", "text-cyan-300", true) + D.arrow(554, 62, 586, 62) +
+                        D.box(590, 30, 150, 64, "Release", "漸進、Feature Flag") + D.arrow(744, 62, 776, 62) +
+                        D.box(780, 30, 100, 64, "Observe", "看指標") +
+                        D.arrow(830, 98, 830, 170, "異常", "text-cyan-300", false, 4) +
+                        D.box(590, 170, 290, 60, "Rollback：回到上一版", "條件事先寫好，不是出事才想", "text-cyan-300", true) +
+                        D.arrow(586, 200, 300, 200, "下一輪修正後再走一次", "text-slate-400", true),
+                        "部署流程：Build、Config、Approval、Release、Observe；異常時依事先定好的條件 Rollback 回上一版")}
+                <p class="mt-3 text-xl text-slate-300">部署確認者要知道：誰批准、哪個版本、如何觀察、什麼條件回滾。</p>`,
+                note: "AI 可以建 pipeline、修設定、執行部署。高風險 production action 仍應有 approval gate。部署不是成功訊息，而是版本進入新的風險環境。"
+            },
+            {
+                kicker: "10 · Production Test",
+                title: "測試過了，線上還要再測",
+                body: `<div class="mt-7 grid gap-3 md:grid-cols-4">
+                    ${["Smoke Test","Health Check","Metrics／Logs／Traces","真實使用者回饋"].map(x=>`<div class="glass rounded-2xl p-5 text-center text-lg font-bold text-white">${x}</div>`).join("")}
+                </div><p class="mt-6 text-xl text-slate-300">測試環境證明「已知條件下可行」；Observability 告訴你「未知現實裡發生什麼」。</p>`,
+                note: "這裡對應 2025 課綱的 post-deployment agents、incident response 與 observability。代理可以分類告警、查 log、提出假設，但 incident commander 仍負責決策。"
+            },
+            {
+                kicker: "11 · PDCA",
+                title: "上線結果，再餵回下一輪",
+                body: `${(() => {
+                        const cx = 450, cy = 175, r = 92, gap = .16;
+                        const pt = a => `${(cx + r * Math.cos(a)).toFixed(1)} ${(cy + r * Math.sin(a)).toFixed(1)}`;
+                        let g = "";
+                        [-Math.PI, -Math.PI / 2, 0, Math.PI / 2].forEach((a0, i) => {
+                            const a1 = a0 + Math.PI / 2 - gap, s = a0 + gap;
+                            const ex = cx + r * Math.cos(a1), ey = cy + r * Math.sin(a1);
+                            g += `<g class="${i === 2 ? "text-cyan-300" : "text-slate-300"}"><path d="M ${pt(s)} A ${r} ${r} 0 0 1 ${pt(a1)}" fill="none" stroke="currentColor" stroke-width="${i === 2 ? 5 : 3.5}"/>${D.head(ex, ey, a1 + Math.PI / 2, 13)}</g>`;
+                        });
+                        g += D.text(cx, cy - 4, "AI 讓迴圈轉快", 15, "text-white", "middle", 800) + D.text(cx, cy + 18, "Check 要跟得上", 12.5, "text-cyan-300", "middle", 700);
+                        g += D.box(130, 40, 200, 66, "Plan", "需求、規格、SA、SD") + D.box(570, 40, 200, 66, "Do", "開發、Review、Test、Deploy") +
+                             D.box(570, 244, 200, 66, "Check", "線上測試、指標、回饋", "text-cyan-300", true) + D.box(130, 244, 200, 66, "Act", "回寫標準、流程、Skill");
+                        return D.svg(900, 330, g, "PDCA 循環：Plan、Do、Check、Act 順時針轉，Check 是最容易被跳過的一步");
+                    })()}
+                <p class="mt-3 text-xl font-bold text-cyan-200">AI 讓迴圈轉快；Check 不夠快，只會更快地累積錯誤。</p>`,
+                note: "把整條 lifecycle 包進 PDCA。Agentic 工程不是一次 prompt，而是 loop engineering。每次事故與 review comment 都應回寫成測試、rule、skill 或 checklist。"
+            },
+            {
+                kicker: "Stanford · Software Factory",
+                title: "把每次確認，變成下一次的自動護欄",
+                body: `${D.chain([["規格模板", "需求怎麼寫"], ["Agent Skill", "流程怎麼做"], ["CI Gate", "自動擋下"], ["Review Rule", "人看什麼"], ["監控／回饋", "線上發生什麼"]],
+                        { bw: 150, bh: 66, loop: "每次事故、每條 review 意見 → 回寫成新的模板、Skill、Gate", strong: [2], label: "規格模板、Agent Skill、CI Gate、Review Rule、監控回饋串成一圈，回饋再回寫成標準" })}
+                <p class="mt-3 max-w-4xl text-xl text-slate-300">Software Factory 不是無人負責；是把人的標準編碼進系統，讓系統自行運行、持續改進。</p>`,
+                note: "這張回到 Stanford 2026 終點。Self-running、self-improving 不等於自動合併一切。人的標準被轉成規格、測試、政策與觀測；例外仍由人決策。"
+            },
+            {
+                kicker: "Scrum",
+                title: "Scrum 沒消失；每個事件多了一位 AI 隊友",
+                body: `<div class="mt-6 overflow-hidden rounded-2xl border border-white/10 text-sm">
+                    <div class="grid grid-cols-3 bg-white/5 font-bold text-cyan-300"><div class="p-3">Event</div><div class="p-3">AI 加速</div><div class="p-3">人確認</div></div>
+                    ${[["Refinement","拆故事、找歧義","價值與優先序"],["Planning","估依賴、列風險","Sprint Goal 與容量"],["Daily","摘要進度與阻塞","協調與承諾"],["Review","整理 demo 與數據","利害關係人驗收"],["Retro","聚類問題、提改善","選一項真正改變"]].map(r=>`<div class="grid grid-cols-3 border-t border-white/10 text-slate-200">${r.map(x=>`<div class="p-3">${x}</div>`).join("")}</div>`).join("")}
+                </div>`,
+                note: "Scrum 是管理迭代與回饋的框架，不取代 lifecycle。AI 讓會議前準備更快，但 Sprint Goal、優先序、承諾與驗收都仍是團隊責任。"
+            },
+            {
+                kicker: "一個 Sprint 怎麼跑",
+                title: "Backlog Item 不是直接丟給 Agent",
+                body: `<div class="mt-7 flex flex-wrap items-center justify-center gap-2 text-sm font-bold text-white">
+                    ${["Refine 需求","確認規格","SA／SD","分小任務","Agent 實作","Review＋Test","PR 合併","Deploy","Review＋Retro"].map((x,i)=>`<span class="glass rounded-xl p-3 ${[1,2,5,7,8].includes(i)?"gate":""}">${x}</span>${i<8?'<span class="text-cyan-300">→</span>':''}`).join("")}
+                </div><p class="mt-6 text-xl text-slate-300">Definition of Ready 控制「能不能開始」；Definition of Done 控制「能不能結束」。</p>`,
+                note: "把 Scrum 和 lifecycle 合起來。Ready 應至少含可理解需求、驗收條件、關鍵依賴。Done 應含 review、test、文件、安全、部署與觀測要求。"
+            },
+            {
+                kicker: "角色怎麼改",
+                title: "每個人都少做搬運，多做判斷",
+                body: `<div class="mt-6 grid gap-3 md:grid-cols-5">
+                    ${[["PO","問題／價值"],["SA","邊界／風險"],["SD","取捨／契約"],["Dev","分解／審查"],["QA／Ops","證據／上線"]].map(x=>`<div class="glass rounded-2xl p-4 text-center"><b class="text-cyan-300">${x[0]}</b><p class="mt-2 text-white">${x[1]}</p></div>`).join("")}
+                </div><p class="mt-6 text-xl text-slate-300">代理負責搜尋、起草、生成、重複執行；人負責語意、取捨、風險與簽收。</p>`,
+                note: "Future Software 不是沒有軟體工程師，而是工程工作重心從產出轉向判斷。角色可以一人多帽，但責任不能消失。"
+            },
+            {
+                kicker: "第四章 · 真實成功經驗",
+                title: "我用 FDE 方法，帶一位 Junior 把需求落地",
+                body: `<div class="mt-7 flex flex-wrap items-center justify-center gap-2 text-base font-bold text-white">
+                    ${["聽懂 Domain","共同建模","轉成系統","前後台＋資料庫","測試驗收","安裝上線"].map((x,i)=>`<span class="glass rounded-xl p-4 ${[0,2,4,5].includes(i)?"gate":""}">${x}</span>${i<5?'<span class="text-cyan-300">→</span>':''}`).join("")}
+                </div><p class="mt-7 max-w-4xl text-xl text-slate-300">AI 加速研究、原型與實作；我和 Junior 對「業務理解 → 系統行為 → 現場結果」負責。</p>`,
+                note: "這是你的真實成功經驗。先強調：你不是讓 Junior 在聊天視窗裡生 App，而是用 FDE 的工作方式，和使用者一起把業務問題變成能在現場運作的系統。"
+            },
+            {
+                kicker: "FDE · Forward Deployed Engineer",
+                title: "站在業務現場與工程系統之間",
+                body: `<div class="mt-6 grid gap-5 md:grid-cols-3">
+                    <div class="glass rounded-3xl p-6"><p class="text-sm font-bold text-cyan-300">聽懂現場</p><p class="mt-3 text-lg text-white">嵌入使用者情境，理解 Domain、工作流程、語言、限制與真正痛點。</p></div>
+                    <div class="glass rounded-3xl p-6"><p class="text-sm font-bold text-cyan-300">工程落地</p><p class="mt-3 text-lg text-white">把模糊問題轉成架構、資料、介面、程式、測試與可部署方案。</p></div>
+                    <div class="glass rounded-3xl p-6"><p class="text-sm font-bold text-cyan-300">對結果負責</p><p class="mt-3 text-lg text-white">不在交付 Code 後離開；陪系統上線、觀察成效、修正並回饋產品。</p></div>
+                </div><p class="mt-5 text-xl font-bold text-cyan-200">不是只接需求的顧問，也不是只領 Ticket 的工程師，而是端到端的共同解題者。</p>
+                <p class="mt-3 text-xs text-slate-400">角色定義參考：<a class="text-cyan-300 underline" href="https://blog.palantir.com/a-day-in-the-life-of-a-palantir-forward-deployed-software-engineer-45ef2de257b1" target="_blank">Palantir · Forward Deployed Software Engineer</a></p>`,
+                note: "FDE 是 Forward Deployed Engineer。它最早由 Palantir 推廣：工程師直接和客戶、使用者並肩工作，從問題定義一路做到 production。重點不是長駐客戶端，而是縮短業務理解與工程回饋的距離。"
+            },
+            {
+                kicker: "FDE · Domain → System",
+                title: "先聽懂業務語言，才能翻成正確系統",
+                body: `<div class="mt-5 grid gap-3 md:grid-cols-2">
+                    <div class="glass rounded-3xl p-5">
+                        <p class="text-sm font-bold text-cyan-300">Domain 現場怎麼說</p>
+                        <div class="mt-3 grid grid-cols-2 gap-2 text-base text-white">${["角色與目標","實際工作流程","業務規則","例外與補救","資料從哪裡來","成功如何衡量"].map(x=>`<span class="rounded-xl border border-white/10 bg-white/5 p-3">${x}</span>`).join("")}</div>
+                    </div>
+                    <div class="glass rounded-3xl p-5">
+                        <p class="text-sm font-bold text-cyan-300">工程系統怎麼表示</p>
+                        <div class="mt-3 grid grid-cols-2 gap-2 text-base text-white">${["Actor／Permission","Use Case／State","Validation／Policy","Error／Recovery","Schema／Integration","Acceptance／Metric"].map(x=>`<span class="rounded-xl border border-white/10 bg-white/5 p-3">${x}</span>`).join("")}</div>
+                    </div>
+                </div><p class="mt-5 text-xl font-bold text-cyan-200">FDE 的核心產出不是 Prompt，而是一組可被業務確認、可被工程實作的共同模型。</p>`,
+                note: "逐列舉例：『主管才能退件』會變成角色與權限；『退件後回到承辦人』會變成狀態轉移；『月底不能修改』會變成驗證規則；『匯入失敗要能重跑』會變成錯誤復原。翻譯不是換名詞，是把語意變成可執行規格。"
+            },
+            {
+                kicker: "真實經驗 · 1",
+                title: "先做 Domain 訪談，再把理解畫出來",
+                body: `<div class="mt-7 grid gap-5 md:grid-cols-2">
+                    <div class="glass rounded-3xl p-6"><p class="text-sm font-bold text-cyan-300">聽業務</p><ul class="mt-3 space-y-2 text-lg text-slate-200"><li>跟著使用者走一次真實流程</li><li>記錄術語、角色、規則與例外</li><li>追問痛點背後要改善的結果</li></ul></div>
+                    <div class="glass rounded-3xl p-6"><p class="text-sm font-bold text-cyan-300">做共同模型</p><ul class="mt-3 space-y-2 text-lg text-slate-200"><li>用畫面與流程讓理解可被指認</li><li>補上狀態、權限與錯誤情境</li><li>先求說得對，不先求做得漂亮</li></ul></div>
+                </div><p class="mt-5 text-xl font-bold text-cyan-200">AI 可整理訪談、產生 wireframe；FDE 要回到使用者面前確認：「我真的聽懂了嗎？」</p>`,
+                note: "講你如何帶 Junior：不要只抄需求清單，要聽懂使用者為什麼這樣做、哪些術語有特別意義、平常怎麼處理例外。畫面是共同語言，讓業務可以直接指出你理解錯的地方。"
+            },
+            {
+                kicker: "真實經驗 · 2",
+                title: "把 Domain 模型轉成前後台與資料庫",
+                body: `<div class="mt-6 grid gap-3 md:grid-cols-4">
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">前台</b><p class="mt-2 text-white">使用流程、狀態、錯誤回饋</p></div>
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">API</b><p class="mt-2 text-white">輸入輸出與錯誤契約</p></div>
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">後台</b><p class="mt-2 text-white">規則、權限、工作流程</p></div>
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">資料庫</b><p class="mt-2 text-white">Schema、關聯、migration</p></div>
+                </div><p class="mt-6 text-xl text-slate-300">Junior 學的不是「把四塊生出來」，而是讓同一條業務規則穿過四層仍然一致。</p>`,
+                note: "用一條業務規則的旅程來講整合：畫面如何提示、API 如何約束、後台如何驗證、資料庫如何保證，再怎麼把結果回饋給使用者。AI 可分層實作，但業務語意與介面契約要先確認。"
+            },
+            {
+                kicker: "真實經驗 · 3",
+                title: "回到現場驗收，才把作品變成產品",
+                body: `<div class="mt-7 grid gap-5 md:grid-cols-2">
+                    <div class="glass rounded-3xl p-6"><p class="text-sm font-bold text-cyan-300">Test＋UAT</p><ul class="mt-3 space-y-2 text-lg text-slate-200"><li>正常流程、例外與補救流程</li><li>用真實角色與代表性資料驗收</li><li>確認結果改善原本業務問題</li></ul></div>
+                    <div class="glass rounded-3xl p-6"><p class="text-sm font-bold text-cyan-300">Deploy＋Learn</p><ul class="mt-3 space-y-2 text-lg text-slate-200"><li>環境、設定、權限與 Secrets</li><li>安裝、監控、診斷與回復</li><li>收集現場回饋，進入下一輪 PDCA</li></ul></div>
+                </div><p class="mt-5 text-xl font-bold text-cyan-200">「在我電腦上能跑」不是 Done；別人能裝、能驗、能維護才是。</p>`,
+                note: "FDE 不只交付系統，也確認系統在真實工作流程裡產生結果。讓 Junior 親自和使用者驗收、跑安裝與處理差異，比只看 AI 說部署成功更重要。"
+            },
+            {
+                kicker: "真實經驗 · Lessons Learned",
+                title: "Junior 真正學到的，是 FDE 的責任鏈",
+                body: `<div class="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3">
+                    ${[
+                        ["Domain","聽懂業務與現場"],
+                        ["轉譯","把語意變成系統模型"],
+                        ["確認","在昂貴實作前修正"],
+                        ["整合","跨層守住同一規則"],
+                        ["驗收","用業務結果取代感覺"],
+                        ["落地","對真實環境持續負責"]
+                    ].map(x=>`<div class="glass rounded-xl p-4"><b class="text-cyan-300">${x[0]}</b><p class="mt-1 text-white">${x[1]}</p></div>`).join("")}
+                </div><p class="mt-6 text-xl text-slate-300">FDE 的價值不是 Coding 更快，而是縮短「理解業務 → 建成系統 → 確認結果」的距離。</p>`,
+                note: "故事的結論不是 Junior 最後會了哪個框架，而是他走過完整責任鏈。AI 加速研究與實作；人仍要理解 Domain、選擇取捨並確認結果。這也回扣 Stanford 的 human-agent loop：plan、build、evaluate、improve。"
+            },
+            // ───────────────────────── 第五章：真實導入 ─────────────────────────
+            {
+                kicker: "第五章 · 真實導入",
+                title: "把 ERP 變成 AI 能安全查詢的資料市集",
+                body: `${D.svg(900, 320,
+                        D.box(20, 18, 170, 60, "顧問規格", "Excel 欄位對應＋md 規則", "text-cyan-300", true) +
+                        D.box(20, 128, 170, 60, "ERP", "採購／銷售／財報") +
+                        D.box(20, 230, 170, 60, "電子表單系統", "請購／標單／簽核") +
+                        D.box(250, 18, 170, 60, "產生器", "規格 → 21 支 SQL") +
+                        D.box(250, 128, 170, 60, "載入＋4 道斷言", "沒過就不換表", "text-cyan-300", true) +
+                        D.box(250, 230, 170, 60, "員工授權檔", "客戶 IT 每天維護") +
+                        D.box(480, 128, 170, 60, "Data Mart", "21 張寬表") +
+                        D.box(480, 230, 170, 60, "Agent View", "依登入員編逐列過濾", "text-cyan-300", true) +
+                        D.box(710, 128, 170, 60, "使用者", "以員編登入") +
+                        D.box(710, 230, 170, 60, "AI Agent", "工程部、總經理…") +
+                        D.arrow(194, 48, 246, 48) + D.arrow(335, 82, 335, 124, "SQL", "text-cyan-300", false, 4) +
+                        D.arrow(194, 158, 246, 158) + D.arrow(194, 252, 246, 172, "", "text-slate-400") +
+                        D.arrow(424, 158, 476, 158) + D.arrow(565, 192, 565, 226) + D.arrow(424, 260, 476, 260) +
+                        D.arrow(654, 260, 706, 260) + D.arrow(795, 192, 795, 226),
+                        "專案架構：顧問規格經產生器變成 SQL，從 ERP 與電子表單載入資料市集並通過斷言；Agent 經過依員編過濾的 View 查詢")}
+                <div class="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4">
+                    ${[["21", "張寬表"], ["14", "個規格版本（V2→V15）"], ["43", "個規格問題回報顧問"], ["221", "個代碼欄每次自動檢查"]].map(x => `<div class="glass rounded-xl px-4 py-2"><b class="text-2xl text-cyan-300">${x[0]}</b><span class="ml-2 text-sm text-slate-200">${x[1]}</span></div>`).join("")}
+                </div>`,
+                note: "這是正在客戶端每天運作的專案：營造業客戶的 ERP 與電子表單，依國際顧問公司給的設計規格，轉成 AI Agent 能查詢的資料市集，而且每位員工只看得到被授權的專案。大部分實作由程式代理完成，從開發機一路到客戶機上線。接下來每一張，都對照前面講過的一個觀念。"
+            },
+            {
+                kicker: "真實導入 · 分工",
+                title: "代理負責做，我負責判斷與簽收",
+                body: `<div class="mt-6 grid gap-4 md:grid-cols-2">
+                    <div class="glass rounded-3xl p-6"><p class="text-sm font-bold text-cyan-300"><i class="fa-solid fa-robot mr-2"></i>程式代理做的</p><ul class="mt-3 space-y-2 text-lg text-slate-200">
+                        <li>逐格讀規格 Excel，寫產生器與 SQL</li><li>載入、對帳，抓出筆數膨脹與關聯錯誤</li><li>在開發機重現客戶端的錯誤</li><li>寫部署腳本、文件、手冊與工具</li></ul></div>
+                    <div class="glass rounded-3xl p-6 ring-1 ring-cyan-400/50"><p class="text-sm font-bold text-cyan-300"><i class="fa-solid fa-user-check mr-2"></i>我決定與確認的</p><ul class="mt-3 space-y-2 text-lg text-slate-200">
+                        <li>範圍、優先順序、要不要跟顧問回報</li><li>設計取捨（例：金額欄要不要進 View）</li><li>每一次 commit、push 與部署都由我同意</li><li>到客戶機執行，把結果帶回來</li></ul></div>
+                </div>
+                <div class="mt-4 glass rounded-2xl p-4 text-lg text-white"><i class="fa-solid fa-magnifying-glass-chart mr-2 text-cyan-300"></i>規則：代理的每個結論都要附證據 —— 實測數字、檔案路徑、查詢結果。「應該沒問題」不算。</div>`,
+                note: "對應第二章的不變量：AI 改變執行者，沒有改變簽收者。代理做了大量的讀、寫、跑、查；但範圍、取捨、要不要上線，每一次都是我點頭。我給代理的最重要規則是：結論要附證據。這讓我能在幾分鐘內審查它一小時的工作。"
+            },
+            {
+                kicker: "真實導入 · Harness",
+                title: "第三章的七塊，在專案裡長這樣",
+                body: `${D.hub(["程式代理", "推理與生成"], [
+                        ["Context", "CLAUDE.md＋7 份文件"],
+                        ["Tools", "DB・容器・Git・瀏覽器"],
+                        ["Rules", "5 條硬規則"],
+                        ["Skills", "/etl-verify 驗證流程"],
+                        ["Memory", "跨對話的決策與偏好"],
+                        ["Loop", "規格改版 18 步"],
+                        ["Gates", "載入斷言＋驗證腳本"]
+                    ], "專案的 Harness：程式代理在中心，周圍是專案說明、工具、硬規則、驗證 Skill、跨對話記憶、改版流程與驗證關卡")}
+                <p class="mt-3 text-base text-slate-300"><b class="text-cyan-300">硬規則舉例：</b>產生出來的 SQL 不准手改（改規格再重產）· 密碼不進版控 · 腳本存成 UTF-8 BOM · 資料庫大小寫敏感 · 連本機用 127.0.0.1</p>`,
+                note: "每一塊都對得到實物。Context 是專案根目錄的 CLAUDE.md，告訴代理先讀哪份文件；Rules 是踩過坑才寫下的硬規則，每條都有出事的紀錄；Skill 是我寫的驗證流程，改欄位前一定要跑；Memory 讓代理記得我做過的決定，下次不用重講；Loop 是收到新版規格時的 18 步流程；Gates 是自動擋下壞資料的斷言與腳本。"
+            },
+            {
+                kicker: "真實導入 · Spec-driven",
+                title: "不手寫 SQL：規格是唯一的來源",
+                body: `${D.svg(900, 260,
+                        D.box(20, 30, 170, 66, "顧問規格", "Excel 欄位對應", "text-cyan-300", true) + D.arrow(194, 63, 246, 63) +
+                        D.box(250, 30, 170, 66, "產生器", "讀標題列、組 JOIN", "text-white", true) + D.arrow(424, 63, 476, 63) +
+                        D.box(480, 30, 170, 66, "21 支 SQL", "自動產生") + D.arrow(654, 63, 706, 63) +
+                        D.box(710, 30, 170, 66, "載入＋驗證", "斷言、對帳") +
+                        D.box(250, 168, 170, 64, "修正設定", "每條附理由與實測", "text-cyan-300") + D.arrow(335, 164, 335, 100, "覆寫", "text-cyan-300", false, 4) +
+                        `<g class="text-slate-400"><rect x="480" y="168" width="170" height="64" rx="12" fill="none" stroke="currentColor" stroke-dasharray="6 5" stroke-width="1.6"/></g>` +
+                        D.text(565, 196, "手改 SQL", 15, "text-slate-400", "middle", 800) + D.text(565, 216, "下次重產就被覆蓋", 11.5, "text-slate-400") +
+                        D.text(668, 210, "✕", 30, "text-cyan-300", "middle", 900),
+                        "顧問規格經產生器變成 SQL 再載入驗證；我方的修正寫在設定檔並附理由，手改 SQL 會被下一次產生覆蓋")}
+                <p class="mt-3 text-lg text-slate-300">規格改版就重跑產生器。跟規格不同的每一處，都寫在設定裡、附問題編號與實測數字 —— 交給另一個團隊時，這份清單就是說明書。</p>`,
+                note: "對應第二章的 executable specification。如果讓代理直接寫 SQL，每次規格改版都要重寫、而且不知道哪裡跟規格不同。所以我讓代理寫的是『產生器』：讀規格自動產出 SQL。規格錯的地方不直接改 SQL，而是寫進修正設定並附理由，所以永遠查得到為什麼跟規格不一樣。"
+            },
+            {
+                kicker: "真實導入 · 規格也會錯",
+                title: "14 版規格，每一版都逐格比對",
+                body: `${(() => {
+                        let g = `<g class="text-slate-300"><line x1="40" y1="122" x2="860" y2="122" stroke="currentColor" stroke-width="3"/></g>`;
+                        for (let n = 2; n <= 15; n++) {
+                            const x = 60 + (n - 2) * 60;
+                            g += `<g class="text-cyan-300"><circle cx="${x}" cy="122" r="6" fill="currentColor"/></g>` + D.text(x, 146, "V" + n, 11.5, "text-slate-400", "middle", 700);
+                        }
+                        const call = (vx, bx, by, t, s) => {
+                            const up = by < 100;
+                            return `<g class="text-slate-400"><line x1="${vx}" y1="${up ? by + 58 : by}" x2="${vx}" y2="${up ? 114 : 130}" stroke="currentColor" stroke-dasharray="3 3"/></g>` + D.box(bx, by, 175, 58, t, s);
+                        };
+                        g += call(120, 30, 6, "欄位編號整份位移", "→ 改用欄名對應") +
+                             call(540, 455, 6, "優先序規則解掉 P1", "命中率 98% → 100%") +
+                             call(840, 712, 6, "員工主檔與簽核規格", "設計檔沒有的表自訂") +
+                             call(420, 300, 172, "簽核併表、筆數 ×3.15", "→ 依 md 的粒度拆表") +
+                             call(660, 540, 172, "誤包回舊版檔案", "→ 一律 md5＋逐格比");
+                        return D.svg(900, 240, g, "規格版本時間軸 V2 到 V15，標出欄位位移、簽核併表膨脹、優先序規則、誤包舊檔、員工主檔等事件");
+                    })()}
+                <div class="mt-3 grid gap-3 md:grid-cols-2">
+                    <div class="glass rounded-2xl p-4 text-lg text-white"><i class="fa-solid fa-triangle-exclamation mr-2 text-cyan-300"></i>「版號與日期都沒動、內容卻不同」發生過兩次 —— 所以只信逐格比對，不信檔名。</div>
+                    <div class="glass rounded-2xl p-4 text-lg text-white"><i class="fa-solid fa-paper-plane mr-2 text-cyan-300"></i>累計回報顧問 43 個規格問題，每個都附實測數字，不是「感覺怪怪的」。</div>
+                </div>`,
+                note: "這張講 SA 階段的『要求證據』。規格是顧問交付的，但規格會錯：有一版把簽核紀錄併進請購明細，筆數會膨脹三倍；有一版把舊檔包回來。代理的價值是能逐格比對每一版、用實際資料驗證規格，再把問題寫成有數字的回報。我負責判斷：哪些照規格做、哪些依 md 的原則改、哪些要回報。"
+            },
+            {
+                kicker: "真實導入 · Gates",
+                title: "壞資料進不了正式表",
+                body: `${D.svg(900, 300,
+                        D.box(20, 70, 120, 64, "來源", "ERP／表單") + D.arrow(144, 102, 166, 102) +
+                        D.box(170, 70, 130, 64, "暫存表", "先載到這裡") + D.arrow(304, 102, 326, 102) +
+                        [["A1", "筆數 > 0"], ["A2", "唯一鍵沒有 NULL"], ["A3", "鍵唯一＝沒有膨脹"], ["A4", "沒有縮水超過 10%"]]
+                            .map((t, i) => D.box(330, 12 + i * 46, 190, 40, `${t[0]}　${t[1]}`, "", "text-cyan-300", true)).join("") +
+                        D.arrow(524, 102, 556, 102, "全過") +
+                        D.box(560, 70, 140, 64, "原子切換", "一個交易完成") + D.arrow(704, 102, 726, 102) +
+                        D.box(730, 70, 150, 64, "正式表", "AI 查的是這張", "text-white", true) +
+                        D.arrow(425, 200, 425, 228, "任一沒過", "text-cyan-300", false, 4) +
+                        D.box(260, 230, 330, 60, "正式表維持上一版", "被擋下的資料留在暫存表供查", "text-cyan-300"),
+                        "載入流程：來源先進暫存表，通過四道斷言才原子切換成正式表；任一沒過，正式表維持上一版")}
+                <p class="mt-2 text-lg text-slate-300">載入後再跑兩支驗證腳本：筆數／唯一鍵（3 秒）、跨表關聯命中率與 221 個代碼欄翻譯（4 秒）。全部通過才算完成。</p>`,
+                note: "對應 Test 與 Gates。以前的做法是先刪正式表再建，載到一半失敗表就沒了。現在先載到暫存表，四道斷言都過才切換。A3 最重要：唯一鍵重複就代表 JOIN 膨脹，資料加總會錯。這些關卡是自動的，代理不用記得去檢查，它被系統擋下來。"
+            },
+            {
+                kicker: "真實導入 · Security",
+                title: "AI Agent 只看得到被授權的專案",
+                body: `${D.svg(900, 270,
+                        D.box(20, 40, 130, 64, "使用者", "以員編登入") + D.arrow(154, 72, 196, 72) +
+                        D.box(200, 40, 170, 64, "Agent 平台", "每次查詢先帶入員編") + D.arrow(374, 72, 446, 72, "唯讀身分") +
+                        D.box(450, 40, 190, 64, "工程部 View", "Agent 只能讀這裡", "text-cyan-300", true) + D.arrow(644, 72, 716, 72, "同一份資料") +
+                        D.box(720, 40, 160, 64, "Data Mart", "Agent 帳號沒有權限") +
+                        D.arrow(545, 108, 545, 156, "逐列比對", "text-cyan-300", false, 4) +
+                        D.box(450, 160, 190, 64, "授權函式", "在職 × Agent × 專案", "text-cyan-300", true) +
+                        D.box(720, 160, 160, 64, "授權檔", "客戶 IT 每天維護") + D.arrow(716, 192, 644, 192) +
+                        D.text(30, 182, "Agent 自己寫的 SQL 改不掉身分", 14, "text-white", "start", 700) +
+                        D.text(30, 208, "沒有身分 → 0 列；離職 → 0 列", 14, "text-white", "start", 700),
+                        "權限架構：使用者以員編登入，平台帶入唯讀身分，Agent 只能讀工程部 View，View 依授權函式逐列過濾資料市集")}
+                <div class="mt-2 glass rounded-2xl p-4 text-lg text-white"><i class="fa-solid fa-scale-balanced mr-2 text-cyan-300"></i><b class="text-cyan-300">人做的取捨：</b>金額欄要不要進 View？→ 要進，回答時只講比例。預先算好的比例一定會錯，因為分子分母要依截止日與稅別動態決定。</div>`,
+                note: "對應 Security Gate 與最小權限。AI Agent 會自己產生 SQL，所以不能靠『請它不要查』。我讓資料庫自己擋：Agent 的帳號只能讀專屬資料庫裡的 View，View 每一列都比對登入者的授權；身分是唯讀帶入，Agent 的 SQL 改不掉。金額怎麼處理是業務判斷，不是技術題：我決定金額欄照樣進 View、回答時只講比例，因為先算好的比例放進 View 一定會錯。"
+            },
+            {
+                kicker: "真實導入 · 除錯",
+                title: "客戶端出錯：先重現，不要猜",
+                body: `${D.chain([["客戶端報錯", "身分設不進去"], ["列假設", "時區？定序？"], ["開發機重現", "一次只改一個條件"], ["找到條件", "新建容器＋特定定序"], ["修腳本＋文件", "新建後自動重啟"]],
+                        { bw: 148, bh: 62, strong: [2, 4], label: "除錯流程：客戶端報錯、列假設、開發機逐一重現、找到條件、修腳本並寫文件" })}
+                <div class="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4">
+                    ${[["不設時區", 1], ["時區 GMT+8", 1], ["時區 Asia/Taipei", 1], ["定序 CI_AS", 1], ["定序 BIN", 0], ["定序 BIN＋時區", 0], ["BIN，重啟一次", 1], ["客戶機重啟後", 1]].map(([t, ok], i) => `<div class="glass rounded-xl px-4 py-3 ${i >= 6 ? "ring-1 ring-cyan-400/60" : ""}"><span class="text-xl font-black ${ok ? "text-cyan-300" : "text-slate-400"}">${ok ? "✓" : "✕"}</span><span class="ml-2 text-base text-white">${t}</span></div>`).join("")}
+                </div>
+                <p class="mt-3 text-lg text-slate-300">七種組合跑完，答案很清楚：不是時區，是「新建的容器＋特定定序」要重啟一次。客戶端重啟後驗收通過，部署腳本改成自動處理。</p>`,
+                note: "這是我們真的遇到的事：客戶機上 AI Agent 的身分怎麼都設不進去。我把錯誤訊息帶回來，代理沒有猜，而是在開發機開了七個測試容器，一次只改一個條件。結果第一個懷疑的時區不是原因，原因是新建的容器用了特定定序、要重啟一次。修法很小，但只有重現才找得到。"
+            },
+            {
+                kicker: "真實導入 · 交付",
+                title: "交付的不只是程式碼",
+                body: `<div class="mt-6 grid gap-3 md:grid-cols-3">
+                    ${[["fa-book", "IT 使用者手冊", "客戶 IT 每天怎麼維護授權、看結果、排錯"],
+                       ["fa-pen-to-square", "授權檔編輯器", "存檔前檢查員編與專案代號，錯了不讓存"],
+                       ["fa-diagram-project", "授權對應圖", "使用者 × 群組 × Agent × 資料表，一眼看完"],
+                       ["fa-box-archive", "給 ETL 團隊的交付包", "21 支 SQL＋與規格不同處＋對帳基準"],
+                       ["fa-code-compare", "交叉比對程式", "對方重建的 20 張表：筆數與鍵全部一致，找出 1 欄解讀不同"],
+                       ["fa-flask-vial", "反向測試", "比對程式本身也要驗：故意改錯一個翻譯，49,965 列全被抓到"]]
+                        .map(x => `<div class="glass rounded-2xl p-5"><i class="fa-solid ${x[0]} text-2xl text-cyan-300"></i><p class="mt-3 text-lg font-black text-white">${x[1]}</p><p class="mt-1 text-sm text-slate-300">${x[2]}</p></div>`).join("")}
+                </div>`,
+                note: "對應第四章的『別人能裝、能驗、能維護才是 Done』。專案上線後，客戶 IT 要每天維護授權，所以有手冊、編輯器與對應圖；另一個 ETL 團隊要重建同一批表，所以有交付包與比對程式。最後一格最重要：比對程式說『全部一致』時，我要先證明它真的會抓錯。"
+            },
+            {
+                kicker: "真實導入 · Software Factory",
+                title: "每一次確認，都留下一道自動護欄",
+                body: `<div class="mt-6 space-y-2">
+                    ${[["設計檔版號沒動、內容卻變了", "逐格比對工具：每次改版先比，不看檔名"],
+                       ["JOIN 膨脹，筆數悄悄變多", "載入斷言 A3：唯一鍵重複就不切換"],
+                       ["新建容器後身分功能失效", "部署腳本：新建後自動重啟並實測"],
+                       ["客戶 IT 授權檔打錯，整批被擋", "編輯器：存檔前即時檢查"],
+                       ["另一個團隊自建同一批表", "比對程式＋反向測試，以後隨時可重跑"]]
+                        .map(x => `<div class="grid items-center gap-2 md:grid-cols-[1fr_auto_1.2fr]"><div class="glass rounded-xl p-3 text-white"><i class="fa-solid fa-circle-exclamation mr-2 text-slate-400"></i>${x[0]}</div><i class="fa-solid fa-arrow-right hidden text-xl text-cyan-300 md:block"></i><div class="glass rounded-xl p-3 text-white ring-1 ring-cyan-400/40"><i class="fa-solid fa-shield-halved mr-2 text-cyan-300"></i>${x[1]}</div></div>`).join("")}
+                </div>
+                <p class="mt-4 text-xl font-bold text-cyan-200">不是一次就做對；是每次出錯，都變成系統會自己擋下的規則。</p>`,
+                note: "這張把第五章收回第三章的 Software Factory。每一列都是真的發生過的事，右邊是它留下的護欄。代理很會產生東西，但真正讓專案可靠的，是我把每次確認變成腳本、斷言或規則，下次不用再靠人記得。這就是 PDCA 的 Act。"
+            },
+            {
+                kicker: "這份簡報本身",
+                title: "你正在看的，就是三個工具輪流做出來的",
+                body: `${D.chain([["Grok 4.7", "Cursor · 把課鋪成結構"], ["GPT 5.6", "Cursor · 補上台條件"], ["Claude Code", "整份重讀再調整"]],
+                        { bw: 230, bh: 74, strong: [2], label: "同一份 ai_coding.html：Grok 4.7 在 Cursor 起草，GPT 5.6 接續，Claude Code 再調整" })}
+                <p class="mt-4 max-w-4xl text-xl text-slate-300">沒有一個工具從第一句寫到最後一頁。<br>前一個做完的事，下一個才看得到還沒補上的洞。</p>`,
+                note: "這段用這份簡報自己當案例，不要講成工具評比。上午在 Cursor 用 Grok 4.7 把課鋪開；同一份檔案換 GPT 5.6，補的是上台時才會撞上的事；下午用 Claude Code 把整份 HTML 重讀，該變圖的變圖，並補上第五章。請學生看的是接力，不是誰比較強。"
+            },
+            {
+                kicker: "同一份 ai_coding.html",
+                title: "每個工具補的，是前一個沒做完的洞",
+                body: `<div class="mt-6 grid gap-3 md:grid-cols-3">
+                    <div class="glass rounded-2xl p-5">
+                        <b class="text-cyan-300">Cursor · Grok 4.7</b>
+                        <p class="mt-1 text-sm text-slate-400">從一句話鋪成可講的課</p>
+                        <ul class="mt-3 space-y-2 text-sm leading-relaxed text-slate-200"><li>課綱中譯被你改口：這是要上台講的</li><li>主線立起：確認關卡、Harness、FDE</li><li>截圖與中譯、白灰黑底、講者備註</li></ul>
+                    </div>
+                    <div class="glass rounded-2xl p-5">
+                        <b class="text-cyan-300">Cursor · GPT 5.6</b>
+                        <p class="mt-1 text-sm text-slate-400">同一份檔案，不重寫論點</p>
+                        <ul class="mt-3 space-y-2 text-sm leading-relaxed text-slate-200"><li>補上整頁播放，按 F 才能上台</li><li>播放時收起標題、主題與備註</li><li>CI Gate 被問到，先把名詞講清楚</li></ul>
+                    </div>
+                    <div class="glass rounded-2xl p-5 ring-1 ring-cyan-400/40">
+                        <b class="text-cyan-300">Claude Code</b>
+                        <p class="mt-1 text-sm text-slate-400">離開聊天，重讀整份檔案</p>
+                        <ul class="mt-3 space-y-2 text-sm leading-relaxed text-slate-200"><li>抽象頁改成會跟著底色變的圖</li><li>補上第五章：客戶端 AI Data Mart</li><li>方法終於有一個正在跑的案子</li></ul>
+                    </div>
+                </div>`,
+                note: "三欄對照要慢念。Grok 4.7 的工作是把散的要求收成一小時的骨架，骨架齊了它會繼續加字。換 GPT 5.6 之後，新模型先看見的是播放：沒有整頁模式，這份簡報還不能站上講台；CI Gate 也是現場會被問的詞。Claude Code 不在同一個聊天裡續寫，它把 HTML 當作品改：流程頁變成圖，並把真實導入補成第五章。每一欄都是前一欄沒做完的洞。"
+            },
+            {
+                kicker: "為什麼要換工具",
+                title: "一種工具，只擅長一種活",
+                body: `<div class="mt-6 grid gap-3 md:grid-cols-2">
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">起草</b><p class="mt-2 text-white">第一個模型把散的要求收成結構。<br>結構齊了，它會沿著自己的框架繼續加字。</p></div>
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">換模型</b><p class="mt-2 text-white">同一個 IDE、同一份檔案。<br>換一個模型，等於請另一個人看這份成品。</p></div>
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">換工具</b><p class="mt-2 text-white">Claude Code 對著整份檔案改。<br>該變圖的頁、缺證據的章，這一輪才出現。</p></div>
+                    <div class="glass rounded-2xl p-5"><b class="text-cyan-300">人簽收</b><p class="mt-2 text-white">哪一頁留、哪一句刪，<br>仍由你在三次 diff 之間決定。</p></div>
+                </div>
+                <p class="mt-4 text-lg text-slate-300">這就是前面的 Review：AI 可以先做，另一個 AI 當 critic。不要指望一個聊天視窗同時當作者、審查者與現場工程師。</p>`,
+                note: "收回第三章的 Harness，以及 Review 那頁。重點不是收藏很多訂閱。同一個模型待在同一個聊天裡，上下文與習慣都沒換，所以看不見自己沒畫的圖。換模型是便宜的第二雙眼睛；換工具是換一種做事方式：Cursor 邊聊邊改單頁，Claude Code 對著整份檔案調整。最後仍要有人比較 diff、決定留下哪一版。請學生用自己的下一次作業想：哪一段該交給另一個工具，而不是在同一個視窗裡再講一次。"
+            },
+            {
+                kicker: "帶走",
+                title: "流程沒有變得不重要，<br>而是變得更重要",
+                body: `<p class="mt-6 max-w-4xl text-2xl font-bold text-cyan-200">需求 → 規格 → SA → SD → Code → Review → Test → Deploy → Test → PDCA</p>
+                    <p class="mt-5 max-w-4xl text-xl text-slate-200">代理讓每一步更快；確認讓每一步仍然可信。Scrum 讓這條路以短週期反覆前進。</p>
+                    <p class="mt-3 max-w-4xl text-lg text-slate-300">第五章的專案證明這不是理論：同一條流程，現在每天在客戶端自動運作。</p>
+                    <p class="mt-3 max-w-4xl text-lg text-slate-300">這份簡報自己也是證據：一個工具寫得出結構；要換工具，才補得上沒看見的洞。</p>
+                    <p class="mt-5 text-sm text-slate-400">
+                        <a class="text-cyan-300 underline" href="https://themodernsoftware.dev/" target="_blank">Stanford CS146S</a> ·
+                        <a class="text-cyan-300 underline" href="https://ford-proposal.themodernsoftware.dev/" target="_blank">AI Coding Agents Workshop</a> ·
+                        <a class="text-cyan-300 underline" href="https://blog.palantir.com/a-day-in-the-life-of-a-palantir-forward-deployed-software-engineer-45ef2de257b1" target="_blank">Palantir FDE</a> ·
+                        <a class="text-cyan-300 underline" href="https://x.com/karpathy/status/1886192184808149383" target="_blank">Vibe Coding</a> ·
+                        <a class="text-cyan-300 underline" href="https://x.com/karpathy/status/2019137879310836075" target="_blank">Agentic Engineering</a>
+                    </p>`,
+                note: "念完全流程，用這份簡報收一句：結構是第一個工具寫的，圖和真實案例是換工具才補上的。請學生回答：少了哪個確認點？下一次哪一段該交給另一個工具？"
+            }
+        ];
+
+        const deck = document.getElementById("deck");
+        deck.innerHTML = slidesData.map((slide, i) => `
+            <section class="slide ${i===0?"active":""}" data-slide="${i+1}">
+                <p class="kicker text-xs font-bold text-cyan-300">${slide.kicker}</p>
+                <h${i===0?"1":"2"} class="mt-3 max-w-5xl text-3xl font-black leading-tight text-white sm:text-5xl ${i===0?"lg:text-7xl":""}">${slide.title}</h${i===0?"1":"2"}>
+                ${slide.body}
+                <p class="speaker-note" hidden>${slide.note}</p>
+            </section>`).join("");
+
+        const slides = [...document.querySelectorAll(".slide")];
+        const total = slides.length;
+        let index = Math.max(0, Math.min(slides.length - 1, Number(new URLSearchParams(location.search).get("slide") || 1) - 1));
+        let notesOn = false;
+        const indicator = document.getElementById("indicator");
+        const bar = document.getElementById("bar");
+        const notes = document.getElementById("notes");
+        const noteText = document.getElementById("note-text");
+        const notesBtn = document.getElementById("notes-btn");
+        const fullscreenBtn = document.getElementById("fullscreen-btn");
+
+        function render() {
+            slides.forEach((slide, i) => slide.classList.toggle("active", i === index));
+            indicator.textContent = `${index + 1} / ${total}`;
+            bar.style.width = `${((index + 1) / total) * 100}%`;
+            const note = slides[index].querySelector(".speaker-note");
+            noteText.textContent = note ? note.textContent.trim() : "";
+            notes.classList.toggle("hidden", !notesOn);
+            document.body.classList.toggle("notes-on", notesOn);
+            notesBtn.setAttribute("aria-pressed", String(notesOn));
+        }
+        function go(next) { index = Math.max(0, Math.min(total - 1, next)); render(); }
+        function toggleNotes() { notesOn = !notesOn; render(); }
+        function syncPresentationMode(on) {
+            document.body.classList.toggle("presentation-mode", on);
+            fullscreenBtn.setAttribute("aria-label", on ? "離開全螢幕播放" : "全螢幕播放");
+            fullscreenBtn.setAttribute("title", on ? "離開全螢幕播放（F 或 Esc）" : "全螢幕播放（F）");
+            fullscreenBtn.querySelector("i").className = `fa-solid ${on ? "fa-compress" : "fa-expand"}`;
+        }
+        async function togglePresentation() {
+            const entering = !document.body.classList.contains("presentation-mode");
+            if (entering) {
+                notesOn = false;
+                render();
+                syncPresentationMode(true);
+                try { await document.documentElement.requestFullscreen?.(); } catch {}
+            } else {
+                syncPresentationMode(false);
+                try { if (document.fullscreenElement) await document.exitFullscreen(); } catch {}
+            }
+        }
+
+        const themes = ["white", "gray", "black"];
+        function applyTheme(theme) {
+            if (!themes.includes(theme)) theme = "black";
+            document.body.dataset.theme = theme;
+            document.querySelectorAll("[data-theme-choice]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.themeChoice === theme)));
+            try { localStorage.setItem("ai-coding-theme", theme); } catch {}
+        }
+        document.getElementById("theme-switch").addEventListener("click", e => {
+            const choice = e.target.closest("[data-theme-choice]");
+            if (choice) applyTheme(choice.dataset.themeChoice);
+        });
+        document.getElementById("next-btn").addEventListener("click", () => go(index + 1));
+        document.getElementById("prev-btn").addEventListener("click", () => go(index - 1));
+        notesBtn.addEventListener("click", toggleNotes);
+        fullscreenBtn.addEventListener("click", togglePresentation);
+        document.addEventListener("fullscreenchange", () => {
+            if (!document.fullscreenElement) syncPresentationMode(false);
+        });
+        document.addEventListener("keydown", event => {
+            if (["INPUT","TEXTAREA"].includes(event.target?.tagName)) return;
+            if (event.key.toLowerCase() === "n") { event.preventDefault(); toggleNotes(); return; }
+            if (event.key.toLowerCase() === "f") { event.preventDefault(); togglePresentation(); return; }
+            if (event.key.toLowerCase() === "t") {
+                event.preventDefault();
+                const current = document.body.dataset.theme || "black";
+                applyTheme(themes[(themes.indexOf(current) + 1) % themes.length]);
+                return;
+            }
+            if (["ArrowRight"," ","PageDown"].includes(event.key)) { event.preventDefault(); go(index + 1); }
+            else if (["ArrowLeft","PageUp"].includes(event.key)) { event.preventDefault(); go(index - 1); }
+            else if (event.key === "Home") { event.preventDefault(); go(0); }
+            else if (event.key === "End") { event.preventDefault(); go(total - 1); }
+        });
+        applyTheme(localStorage.getItem("ai-coding-theme") || "black");
+        if (new URLSearchParams(location.search).get("present") === "1") syncPresentationMode(true);
+        render();
+    </script>
+</body>
+</html>
